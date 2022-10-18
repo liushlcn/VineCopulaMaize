@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+Data/
+Manuscript/
+Figures/
+.Rdata
+.httr-oauth
+.DS_Store
