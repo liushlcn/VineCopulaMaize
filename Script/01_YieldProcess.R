@@ -3,18 +3,8 @@ source("./Script/00_Helper.R")
 source("Script/00_Functions.R")
 
 # Step 01 Load necessary data -------------------------------------------------------------------------------------
-zones <- c("NCSM", "HHHSM", "SWCM")
-
-load("Data/Input/GeoInfo.RData")
-
-aoi <- maize_county %>%
-  filter(id03 %in% ids) %>%
-  mutate(zone = as.character(zone)) %>%
-  mutate(zone = factor(zone, labels = c("HHHSM", "NCSM", "SWCM"))) %>%
-  mutate(zone = factor(zone, levels = zones))
-
+load("Data/00_AOI.RData")
 ids <- aoi$id03
-
 # Step 02 Deal with yearly maize yield ----------------------------------------------------------------------------
 
 # 01 detrending yield with different method
@@ -30,7 +20,7 @@ aoi_yld <- openxlsx::read.xlsx(xlsxFile = "Data/Input/M1_Yield_data_calibrated.x
     ## Quantify extreme climate impacts on crop yield as Li et al., (2019), GCB
     py_ssa = detrending(yield, detrending_type = "ssa_pct"),
     py_best = detrending(yield, detrending_type = "best_fit_pct")
-  ), .(id03)] %>%
+  ), .(id03)] %>% .[]
   .[, `:=`(
     ay_ssa = yield - dy_ssa,
     ay_best = yield - dy_best
@@ -58,6 +48,4 @@ aoi_yld_sts <- aoi_yld %>%
 
 
 save(list = c("aoi_yld", "aoi_yld_sts"), file = "Data/01_AOI_Yield.RData")
-save(list = c("aoi", "maize_shp", "zones"), file = "Data/00_AOI.RData")
-
 

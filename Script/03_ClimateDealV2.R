@@ -7,6 +7,8 @@ rm(list = ls())
 source("./Script/00_Helper.R")
 source("./Script/00_Functions.R")
 load("Data/00_AOI.RData")
+load("./Data/01_AOI_Phenology.RData")
+
 # cl <- detectCores() - 1
 # registerDoParallel(cl = cl)
 # runs <- TRUE
@@ -21,6 +23,8 @@ str_todate <- function(x) {
     as.Date()
 }
 
+# https://github.com/isciences/exactextractr/blob/master/README.md
+# https://github.com/isciences/exactextract/blob/master/README.md 
 ## direct use stack crop mask result in NaN values for some counties
 # change all the process into "nc - matrxi - raster" 
 # cost more time but can be acceptable using "exactextractr" package
@@ -71,7 +75,8 @@ nc <- nc_open(filename = somi.file)
 varname <- netcdf.calendar(nc = nc, time.variable = "time") %>%
   format("%Y-%m-%d") %>% 
   grep(pattern = paste0(years, collapse = "|"), x = ., value = T)
-lyrs <- varname %>%
+lyrs <- netcdf.calendar(nc = nc, time.variable = "time") %>%
+  format("%Y-%m-%d") %>% 
   grep(pattern = paste0(years, collapse = "|"), x = .)
 # Error in { : task 1 failed - "error returned from C call"
 # note error for parallel run using foreach
@@ -94,10 +99,14 @@ aoi_somi <- lapply(lyrs, FUN = function(i) {
 nc_close(nc)
 
 aoi_data <- reduce(.x = list(aoi_temp, aoi_somi), .f = merge, by = c("id03", "year", "month"))
+aoi_data %>% dcast.data.table(id03+year~month, value.var = c("tmax", "somi"))
+
+
+
 
 aoi_clim <- aoi_data[month == 8] %>% 
   .[, `:=`(dtmax = detrending(tmax, detrending_type = "ssa"),
            dsomi = detrending(somi, detrending_type = "ssa")), by = .(id03)]
 
-save(list = "aoi_data", file = "Data/01_ClimateData.RData", compress = "xz", compression_level = 9)
+save(list = "aoi_data", file = "Data/00_ClimateData.RData", compress = "xz", compression_level = 9)
 save(list = "aoi_clim", file = "Data/01_AOI_clim.RData", compress = "xz", compression_level = 9)
