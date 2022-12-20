@@ -19,61 +19,74 @@ dt <- merge(aoi_yld, aoi_clim, by = c("id03", "year")) %>%
            sdsomi = dsomi/sd(somi)), by = .(id03)] %>% 
   merge(aoi[,c("zone", "id03")] %>% st_set_geometry(value = NULL), by = "id03")
 
-pthres <- critical.r.function(alpha = 0.05, n.pairs = 34, r.null = 0)
 
-# dt[,.(coryt = cor(sdy_ssa, sdtmax), 
-#       corys = cor(sdy_ssa, sdsomi),
-#       corts = cor(sdtmax, sdsomi)
-#       ), .(id03)] %>% 
-#   .[coryt < pthres[2] & corys > pthres[1] & corts < pthres[2]] %>% 
-#   .[order(corts)]
 
-# dt[id03 == 210401,] %>% 
-#   ggplot() +
-#   geom_point(mapping = aes(x = sdtmax,  y = sdsomi, color = sdy_ssa < 0)) +
-#   theme_basic()
-# 
-# dt[id03 == 210401,] %>% 
-#   ggplot(mapping = aes(x = year, y = yield)) +
-#   geom_point() +
-#   geom_line() +
-#   geom_line(mapping = aes(x = year, y = ay_ssa))
-# 
-# names(dt)
-# 
-# dt[id03 == 210401,] %>% 
-#   ggplot(mapping = aes(x = year)) +
-#   geom_line(mapping = aes(y = tmax )) +
-#   geom_line(mapping = aes(y = tmax - dtmax), color = "blue")
-#   
-# 
-# dt[id03 == 210401,] %>% 
-#   ggplot(mapping = aes(x = year)) +
-#   geom_line(mapping = aes(y = sdy_ssa)) +
-#   geom_line(mapping = aes(y = sdtmax), color = "blue") +
-#   geom_line(mapping = aes(y = sdsomi), color = "red")
-# 
-# 
-# dt[id03 == 210401,] %>% 
-#   ggplot(mapping = aes(x = sdtmax, y = sdy_ssa)) +
-#   geom_point() +
-#   scale_x_continuous(limits = c(-3, 3)) +
-#   scale_y_continuous(limits = c(-3, 3)) +
-#   geom_smooth(method = "lm", se = F)
-# 
-# dt[id03 == 210401,] %>% 
-#   ggplot(mapping = aes(x = sdsomi, y = sdy_ssa)) +
-#   geom_point() +
-#   scale_x_continuous(limits = c(-3, 3)) +
-#   scale_y_continuous(limits = c(-3, 3)) +
-#   geom_smooth(method = "lm", se = F)
-# 
-# dt[id03 == 210401,] %>% 
-#   ggplot(mapping = aes(x = sdtmax, y = sdsomi)) +
-#   geom_point() +
-#   scale_x_continuous(limits = c(-3, 3)) +
-#   scale_y_continuous(limits = c(-3, 3)) +
-#   geom_smooth(method = "lm", se = F)
+pthres <- critical.r.function(alpha = 0.1, n.pairs = 34, r.null = 0)
+dt
+dt[,.(coryt = cor(dy_ssa, dtmax),
+      corys = cor(dy_ssa, dsomi),
+      corts = cor(dtmax, dsomi)
+      ), .(id03, zone)] %>% 
+  # .[abs(coryt) > max(pthres) | abs(corts) > max(pthres)]
+  melt.data.table(id.vars = c("id03", "zone"), measure.vars = c("coryt", "corys"), variable.name = "variable", value.name = "value") %>% 
+  ggplot() +
+  geom_boxplot(mapping = aes(x = zone, y = value, fill = variable), position = position_dodge()) +
+  geom_hline(yintercept = pthres)
+
+aoi_clim[id03 == 110111] %>% 
+  ggplot(mapping = aes(year, tmax)) +
+  geom_point() +
+  geom_smooth() +
+  geom_line(mapping = aes(y = tmax - dtmax))
+
+
+dt[id03 == 210401,] %>%
+  ggplot() +
+  geom_point(mapping = aes(x = sdtmax,  y = sdsomi, color = sdy_ssa < 0)) +
+  theme_basic()
+
+dt[id03 == 210401,] %>%
+  ggplot(mapping = aes(x = year, y = yield)) +
+  geom_point() +
+  geom_line() +
+  geom_line(mapping = aes(x = year, y = ay_ssa))
+
+
+
+dt[id03 == 210401,] %>%
+  ggplot(mapping = aes(x = year)) +
+  geom_line(mapping = aes(y = tmax )) +
+  geom_line(mapping = aes(y = tmax - dtmax), color = "blue")
+
+
+dt[id03 == 210401,] %>%
+  ggplot(mapping = aes(x = year)) +
+  geom_line(mapping = aes(y = sdy_ssa)) +
+  geom_line(mapping = aes(y = sdtmax, color = "Tmax")) +
+  geom_line(mapping = aes(y = sdsomi, color = "SOMI")) +
+  geom_hline(yintercept = 0, linetype = 2)
+
+
+dt[id03 == 210401,] %>%
+  ggplot(mapping = aes(x = sdtmax, y = sdy_ssa)) +
+  geom_point() +
+  scale_x_continuous(limits = c(-3, 3)) +
+  scale_y_continuous(limits = c(-3, 3)) +
+  geom_smooth(method = "lm", se = F)
+
+dt[id03 == 210401,] %>%
+  ggplot(mapping = aes(x = sdsomi, y = sdy_ssa)) +
+  geom_point() +
+  scale_x_continuous(limits = c(-3, 3)) +
+  scale_y_continuous(limits = c(-3, 3)) +
+  geom_smooth(method = "lm", se = F)
+
+dt[id03 == 210401,] %>%
+  ggplot(mapping = aes(x = sdtmax, y = sdsomi)) +
+  geom_point() +
+  scale_x_continuous(limits = c(-3, 3)) +
+  scale_y_continuous(limits = c(-3, 3)) +
+  geom_smooth(method = "lm", se = F)
 
 
 
@@ -98,7 +111,8 @@ p1 = ggplot(data = dt, mapping = aes(sdtmax, sdy_ssa)) +
   theme(legend.position = c(1,1), legend.justification = c(1,1)) +
   labs(x = "Temperature deviation", y = "Yield deviation", color = NULL)
 
-names(dt)
+p1
+
 p2 = ggplot(data = dt, mapping = aes(sdsomi, sdy_ssa)) +
   # geom_point() +
   geom_density_2d_filled(show.legend = F) +
@@ -181,13 +195,9 @@ prob_calc <- function(dat, th) {
   return(list(yloss, p))
 }
 
-res <- lapply(c(1, 1.5, 2), prob_calc, dat = dt)
-names(res) <- paste0("level", 1:3)
-sapply(res, "[", 1) %>% rbindlist(idcol = "class")
-pf = sapply(res, "[", 2)
+res <- prob_calc(dat = dt, th = 1)
+res[[1]]
+res[[2]] +
+  geom_hline(yintercept = 0.5)
 
 
-
-make_fig(figname = "Fig2", height = 13/3, width = 13)
-print(pf)
-dev.off()

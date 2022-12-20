@@ -31,6 +31,7 @@ suppressMessages({
   library(ggspatial)
   ## for spatial data manipulation
   library(sf)
+  library(units)
   library(raster)
   library(terra)
   library(ncdf4)

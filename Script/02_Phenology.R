@@ -142,6 +142,25 @@ aoi_gcal$heading = phen_date$HE
 aoi_gcal$maturity = phen_date$MA
 aoi_gcal$value = NULL
 
+dt = merge(aoi_gcal, aoi_gcal[, as.list(my.summary(heading)), .(zone)]) %>% 
+  .[heading >= V1 & heading <= V5] %>% 
+  .[, `:=`(V1 = NULL, V2 = NULL, V3 = NULL, V4 = NULL, V5 = NULL)] %>% 
+  merge(aoi_gcal[, as.list(my.summary(maturity)), .(zone)]) %>% 
+  .[maturity >= V1 & maturity <= V5] %>% 
+  .[, `:=`(V1 = NULL, V2 = NULL, V3 = NULL, V4 = NULL, V5 = NULL)]
+  
+aoi_gcal <- dt
+rm(dt)
+
+
+# st_as_sf(aoi_gcal) %>% 
+  # ggplot() +
+  # geom_sf(data=maize_shp, mapping=aes()) +
+  # # geom_sf(data=aoi, mapping= aes(), fill = "black") +
+  # geom_sf(mapping=aes(fill = heading)) +
+  # coord_crs(crs=tcrs) +
+  # theme_map()
+  
 # ## class counties as spring or summer maize
 # aoi_gcal[, type := "summer"]
 # aoi_gcal[zone == "NCSM", type := "spring"]
@@ -153,9 +172,15 @@ aoi_gcal$value = NULL
 
 save(list = c("aoi_cale", "aoi_gcal", "p_aoi_cale"), file = "./Data/01_AOI_Phenology.RData")
 
-aoi_gcal[, value := maturity - heading] %>% 
-  st_as_sf() %>% 
-  ggplot() +
-  geom_sf(mapping = aes(fill = value)) +
-  scale_fill_stepsn(breaks = seq(30, 80, 10), colors = pals::brewer.ylgnbu(5))
-
+# aoi_gcal[, value := maturity - heading] %>% 
+#   st_as_sf() %>% 
+#   ggplot() +
+#   geom_sf(mapping = aes(fill = value)) +
+#   geom_sf(maize_shp, mapping=aes(), linewidth = 1, fill = NA) +
+#   scale_fill_stepsn(breaks = seq(30, 80, 10), colors = pals::brewer.ylgnbu(5))
+# 
+# aoi_gcal[, value := maturity - heading] %>% 
+#   ggplot() +
+#   geom_boxplot(mapping = aes(x = zone, y = value)) +
+#   geom_hline(yintercept = seq(30, 70, 10), linetype = 2) +
+#   theme_basic()
