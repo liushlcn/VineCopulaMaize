@@ -5,6 +5,7 @@
 Data/
 Manuscript/
 Figures/
+Reference
 .Rdata
 .httr-oauth
 .DS_Store
